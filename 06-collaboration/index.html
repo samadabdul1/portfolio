@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Co — Collaboration</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: #faf9ff; color: #0f0a1e; min-height: 100vh; }
+
+    /* Nav */
+    .nav {
+      background: #fff; border-bottom: 1px solid #ede9fe;
+      padding: 0 28px; height: 60px; display: flex; align-items: center;
+      justify-content: space-between; position: sticky; top: 0; z-index: 50;
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; }
+    .logo-mark {
+      width: 34px; height: 34px; border-radius: 9px;
+      background: linear-gradient(135deg, #7c3aed, #5b21b6);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .logo-mark svg { width: 18px; height: 18px; color: #fff; }
+    .logo-text { font-size: 19px; font-weight: 800; color: #4c1d95; letter-spacing: -0.4px; }
+    .nav-right { display: flex; align-items: center; gap: 10px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 8px 18px; border-radius: 8px; font-size: 13px;
+      font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; font-family: inherit;
+    }
+    .btn-primary { background: #7c3aed; color: #fff; }
+    .btn-primary:hover { background: #6d28d9; }
+    .btn-outline { background: #fff; color: #374151; border: 1px solid #e5e7eb; }
+    .btn-outline:hover { background: #faf9ff; border-color: #c4b5fd; color: #7c3aed; }
+    .btn-ghost { background: none; color: #6b7280; border: 1px solid #e5e7eb; }
+    .btn-ghost:hover { background: #f5f3ff; }
+    .btn svg { width: 15px; height: 15px; }
+    .avatar-pill {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 10px 5px 5px; border-radius: 20px;
+      background: #f5f3ff; border: 1px solid #ddd6fe;
+    }
+    .av { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .av-name { font-size: 12px; font-weight: 600; color: #4c1d95; }
+
+    /* Views */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ── DOCS LIST ── */
+    .docs-header {
+      max-width: 1100px; margin: 0 auto;
+      padding: 36px 28px 0; display: flex; align-items: center; justify-content: space-between;
+    }
+    .docs-header h1 { font-size: 24px; font-weight: 800; color: #0f0a1e; letter-spacing: -0.4px; }
+    .docs-header p { font-size: 14px; color: #6b7280; margin-top: 4px; }
+    .docs-toolbar {
+      max-width: 1100px; margin: 20px auto 0; padding: 0 28px;
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 320px; }
+    .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: #9ca3af; pointer-events: none; }
+    .search-input {
+      width: 100%; padding: 8px 12px 8px 34px; border: 1px solid #e5e7eb;
+      border-radius: 8px; font-size: 13px; color: #111827; background: #fff; outline: none; font-family: inherit;
+    }
+    .search-input:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
+    .filter-pills { display: flex; gap: 6px; }
+    .pill {
+      padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600;
+      cursor: pointer; border: 1px solid #e5e7eb; background: #fff; color: #6b7280; transition: all 0.15s;
+    }
+    .pill:hover { background: #f5f3ff; border-color: #c4b5fd; color: #7c3aed; }
+    .pill.active { background: #f5f3ff; border-color: #c4b5fd; color: #7c3aed; }
+    .view-toggle { display: flex; background: #f3f4f6; border-radius: 8px; padding: 3px; }
+    .vt-btn { padding: 5px 9px; border-radius: 6px; border: none; background: none; cursor: pointer; color: #9ca3af; display: flex; align-items: center; transition: all 0.15s; }
+    .vt-btn.active { background: #fff; color: #7c3aed; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .vt-btn svg { width: 15px; height: 15px; }
+
+    /* Docs grid */
+    .docs-grid-wrap { max-width: 1100px; margin: 20px auto 0; padding: 0 28px 40px; }
+    .docs-section-label { font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 14px; }
+    .docs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .docs-list-view { display: flex; flex-direction: column; gap: 8px; margin-bottom: 32px; }
+
+    .doc-card {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 14px;
+      padding: 20px; cursor: pointer; transition: all 0.18s;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .doc-card:hover { border-color: #c4b5fd; box-shadow: 0 4px 20px rgba(124,58,237,0.08); transform: translateY(-1px); }
+    .doc-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .doc-title { font-size: 14px; font-weight: 700; color: #111827; line-height: 1.4; }
+    .doc-meta { font-size: 12px; color: #9ca3af; }
+    .doc-footer { display: flex; align-items: center; justify-content: space-between; }
+    .doc-collaborators { display: flex; }
+    .doc-collab-av { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #fff; margin-left: -6px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #fff; }
+    .doc-collab-av:first-child { margin-left: 0; }
+    .doc-status-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .doc-status-dot.active { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.2); }
+    .doc-status-dot.idle { background: #d1d5db; }
+
+    .doc-list-item {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 10px;
+      padding: 14px 18px; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .doc-list-item:hover { border-color: #c4b5fd; background: #faf9ff; }
+    .doc-list-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .doc-list-title { font-size: 14px; font-weight: 600; color: #111827; }
+    .doc-list-meta { font-size: 12px; color: #9ca3af; }
+    .doc-list-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+    .doc-list-collab { display: flex; }
+
+    /* ── EDITOR ── */
+    .editor-wrap { display: grid; grid-template-columns: 1fr 300px; height: calc(100vh - 60px); }
+    .editor-main { display: flex; flex-direction: column; overflow: hidden; }
+    .editor-topbar {
+      padding: 12px 24px; background: #fff; border-bottom: 1px solid #ede9fe;
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    }
+    .editor-back { background: none; border: none; cursor: pointer; color: #6b7280; padding: 5px; border-radius: 6px; display: flex; align-items: center; transition: all 0.15s; }
+    .editor-back:hover { background: #f5f3ff; color: #7c3aed; }
+    .editor-back svg { width: 18px; height: 18px; }
+    .editor-title-input {
+      flex: 1; border: none; outline: none; font-size: 16px; font-weight: 700;
+      color: #111827; font-family: inherit; background: transparent; min-width: 120px;
+    }
+    .presence-stack { display: flex; align-items: center; gap: 6px; }
+    .presence-av {
+      width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: #fff; cursor: default;
+      position: relative; transition: transform 0.15s;
+    }
+    .presence-av:hover { transform: scale(1.15); z-index: 2; }
+    .presence-av:not(:first-child) { margin-left: -8px; }
+    .presence-label { font-size: 12px; color: #9ca3af; }
+    .saving-label { font-size: 12px; color: #9ca3af; display: flex; align-items: center; gap: 5px; }
+    .saving-dot { width: 7px; height: 7px; border-radius: 50%; background: #22c55e; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+    .editor-toolbar-bar {
+      padding: 8px 16px; background: #fff; border-bottom: 1px solid #f3f4f6;
+      display: flex; gap: 2px; align-items: center; flex-wrap: wrap;
+    }
+    .tb-btn {
+      padding: 5px 8px; border-radius: 5px; border: none; background: none;
+      font-size: 13px; font-weight: 600; cursor: pointer; color: #4b5563; transition: background 0.15s;
+    }
+    .tb-btn:hover { background: #f5f3ff; color: #7c3aed; }
+    .tb-sep { width: 1px; background: #e5e7eb; height: 20px; margin: 0 4px; }
+    .editor-body { flex: 1; overflow-y: auto; padding: 0; background: #faf9ff; }
+    .editor-content {
+      max-width: 720px; margin: 0 auto; padding: 40px 24px 80px;
+    }
+    .doc-title-display {
+      font-size: 34px; font-weight: 800; color: #0f0a1e; margin-bottom: 24px;
+      letter-spacing: -0.5px; line-height: 1.2; outline: none;
+      border-bottom: 2px solid transparent; transition: border-color 0.2s;
+    }
+    .doc-title-display:focus { border-bottom-color: #7c3aed; }
+    .doc-editor-area {
+      width: 100%; min-height: 480px; border: none; outline: none; resize: none;
+      font-size: 15px; line-height: 1.8; font-family: inherit; color: #374151;
+      background: transparent;
+    }
+    .doc-editor-area::placeholder { color: #d1d5db; }
+
+    /* Cursor decorations (fake) */
+    .cursor-block {
+      display: inline-block; width: 2px; height: 1em;
+      border-radius: 1px; animation: blink 1s steps(1) infinite; vertical-align: text-bottom;
+    }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+
+    /* Right panel */
+    .editor-right { background: #fff; border-left: 1px solid #ede9fe; display: flex; flex-direction: column; overflow: hidden; }
+    .right-tabs { display: flex; border-bottom: 1px solid #ede9fe; }
+    .right-tab {
+      flex: 1; padding: 12px 8px; text-align: center; font-size: 12px; font-weight: 600;
+      color: #9ca3af; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .right-tab:hover { color: #7c3aed; background: #faf9ff; }
+    .right-tab.active { color: #7c3aed; border-bottom-color: #7c3aed; background: #fff; }
+    .right-panel { flex: 1; overflow-y: auto; }
+    .right-section { display: none; padding: 16px; }
+    .right-section.active { display: block; }
+
+    /* Comments */
+    .comment-input-wrap { margin-bottom: 16px; }
+    .comment-textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 9px;
+      font-size: 13px; font-family: inherit; color: #111827; resize: none; outline: none;
+      min-height: 72px; background: #faf9ff;
+    }
+    .comment-textarea:focus { border-color: #7c3aed; background: #fff; }
+    .comment-send-row { display: flex; justify-content: flex-end; margin-top: 6px; }
+    .comment-item { padding: 12px 0; border-bottom: 1px solid #f3f4f6; }
+    .comment-item:last-child { border-bottom: none; }
+    .comment-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+    .comment-av { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .comment-author { font-size: 13px; font-weight: 600; color: #111827; }
+    .comment-time { font-size: 11px; color: #9ca3af; margin-left: auto; }
+    .comment-body { font-size: 13px; color: #4b5563; line-height: 1.5; padding-left: 34px; }
+    .comment-actions { display: flex; gap: 10px; padding-left: 34px; margin-top: 6px; }
+    .comment-action { font-size: 11px; font-weight: 600; color: #9ca3af; background: none; border: none; cursor: pointer; transition: color 0.15s; }
+    .comment-action:hover { color: #7c3aed; }
+
+    /* Doc info / outline */
+    .info-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
+    .info-row:last-child { border-bottom: none; }
+    .info-key { color: #9ca3af; font-weight: 500; }
+    .info-val { color: #111827; font-weight: 600; text-align: right; }
+    .outline-item { display: flex; align-items: center; gap: 8px; padding: 7px 0; cursor: pointer; font-size: 13px; color: #4b5563; transition: color 0.15s; border-radius: 6px; }
+    .outline-item:hover { color: #7c3aed; }
+    .outline-dot { width: 6px; height: 6px; border-radius: 50%; background: #c4b5fd; flex-shrink: 0; }
+    .section-title { font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 12px; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 28px; right: 28px; background: #1e1b4b; color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; display: none; align-items: center; gap: 8px; z-index: 300; box-shadow: 0 4px 24px rgba(0,0,0,0.2); }
+    .toast.show { display: flex; }
+    .toast svg { width: 16px; height: 16px; color: #a78bfa; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #fff; border-radius: 14px; width: 480px; max-width: 95vw; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.18); }
+    .modal-head { padding: 20px 22px 16px; border-bottom: 1px solid #f3f4f6; display: flex; align-items: center; justify-content: space-between; }
+    .modal-head h3 { font-size: 16px; font-weight: 700; color: #111827; }
+    .modal-close { background: none; border: none; cursor: pointer; padding: 4px; color: #9ca3af; font-size: 22px; line-height: 1; }
+    .modal-body { padding: 20px 22px; display: flex; flex-direction: column; gap: 12px; }
+    .modal-foot { padding: 14px 22px; border-top: 1px solid #f3f4f6; display: flex; justify-content: flex-end; gap: 8px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 12px; font-weight: 600; color: #4b5563; }
+    .form-input, .form-select { padding: 9px 12px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 13px; font-family: inherit; color: #111827; outline: none; background: #fff; }
+    .form-input:focus, .form-select:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
+    .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .template-card { border: 2px solid #e5e7eb; border-radius: 10px; padding: 14px; cursor: pointer; transition: all 0.15s; text-align: center; }
+    .template-card:hover { border-color: #a78bfa; background: #faf9ff; }
+    .template-card.selected { border-color: #7c3aed; background: #f5f3ff; }
+    .template-card .t-icon { font-size: 24px; margin-bottom: 6px; }
+    .template-card .t-name { font-size: 13px; font-weight: 600; color: #374151; }
+
+    @media (max-width: 900px) {
+      .editor-wrap { grid-template-columns: 1fr; }
+      .editor-right { display: none; }
+      .docs-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="nav-logo">
+      <div class="logo-mark">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
+        </svg>
+      </div>
+      <span class="logo-text">Co</span>
+    </div>
+    <div class="nav-right">
+      <button class="btn btn-outline" onclick="openModal('share-modal')">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"/></svg>
+        Share
+      </button>
+      <button class="btn btn-primary" onclick="openModal('new-doc-modal')">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        New Doc
+      </button>
+      <div class="avatar-pill">
+        <div class="av" style="background:linear-gradient(135deg,#7c3aed,#db2777);">S</div>
+        <span class="av-name">Samad</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- DOCS LIST VIEW -->
+  <div id="view-docs" class="view active">
+    <div class="docs-header">
+      <div>
+        <h1>My Workspace</h1>
+        <p id="docs-subtitle">12 documents · 3 shared with you</p>
+      </div>
+      <button class="btn btn-primary" onclick="openModal('new-doc-modal')">
+        <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        New Document
+      </button>
+    </div>
+    <div class="docs-toolbar">
+      <div class="search-wrap">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0015.803 15.803z"/></svg>
+        <input class="search-input" type="text" placeholder="Search documents…" oninput="filterDocs(this.value)" />
+      </div>
+      <div class="filter-pills">
+        <button class="pill active" onclick="setDocFilter('all',this)">All</button>
+        <button class="pill" onclick="setDocFilter('mine',this)">Mine</button>
+        <button class="pill" onclick="setDocFilter('shared',this)">Shared</button>
+      </div>
+      <div class="view-toggle" style="margin-left:auto;">
+        <button class="vt-btn active" id="vt-grid" onclick="setDocView('grid',this)" title="Grid">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
+        </button>
+        <button class="vt-btn" id="vt-list" onclick="setDocView('list',this)" title="List">
+          <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="docs-grid-wrap">
+      <div id="pinned-section">
+        <div class="docs-section-label">📌 Pinned</div>
+        <div class="docs-grid" id="pinned-grid"></div>
+      </div>
+      <div id="recent-section">
+        <div class="docs-section-label">Recent</div>
+        <div id="docs-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDITOR VIEW -->
+  <div id="view-editor" class="view">
+    <div class="editor-wrap">
+      <!-- Main editor -->
+      <div class="editor-main">
+        <div class="editor-topbar">
+          <button class="editor-back" onclick="goBack()" title="Back to docs">
+            <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+          </button>
+          <input class="editor-title-input" id="editor-title" type="text" value="Untitled Document" />
+          <div class="saving-label" id="save-status">
+            <div class="saving-dot"></div> Saved
+          </div>
+          <div class="presence-stack" id="presence-stack"></div>
+          <button class="btn btn-outline" onclick="openModal('share-modal')" style="margin-left:8px;">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"/></svg>
+            Share
+          </button>
+        </div>
+        <div class="editor-toolbar-bar">
+          <button class="tb-btn" onclick="fmtText('bold')"><b>B</b></button>
+          <button class="tb-btn" onclick="fmtText('italic')"><i>I</i></button>
+          <button class="tb-btn" onclick="fmtText('underline')"><u>U</u></button>
+          <div class="tb-sep"></div>
+          <button class="tb-btn" onclick="fmtText('h1')">H1</button>
+          <button class="tb-btn" onclick="fmtText('h2')">H2</button>
+          <button class="tb-btn" onclick="fmtText('h3')">H3</button>
+          <div class="tb-sep"></div>
+          <button class="tb-btn" onclick="fmtText('ul')">• List</button>
+          <button class="tb-btn" onclick="fmtText('ol')"># List</button>
+          <button class="tb-btn" onclick="fmtText('blockquote')">❝ Quote</button>
+          <div class="tb-sep"></div>
+          <button class="tb-btn" onclick="fmtText('code')">Code</button>
+          <button class="tb-btn" onclick="fmtText('link')">Link</button>
+          <div class="tb-sep" style="margin-left:auto;"></div>
+          <button class="tb-btn" onclick="fmtText('table')" style="font-size:12px;">⊞ Table</button>
+        </div>
+        <div class="editor-body">
+          <div class="editor-content">
+            <div class="doc-title-display" id="doc-title-display" contenteditable="true" oninput="onTitleEdit(this)">Untitled Document</div>
+            <textarea class="doc-editor-area" id="doc-editor-area" oninput="onDocEdit()" placeholder="Start writing, or type / for commands…"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right panel -->
+      <div class="editor-right">
+        <div class="right-tabs">
+          <button class="right-tab active" onclick="switchRightTab('comments',this)">💬 Comments</button>
+          <button class="right-tab" onclick="switchRightTab('outline',this)">≡ Outline</button>
+          <button class="right-tab" onclick="switchRightTab('info',this)">ℹ Info</button>
+        </div>
+        <div class="right-panel">
+          <!-- Comments -->
+          <div class="right-section active" id="tab-comments">
+            <div class="comment-input-wrap">
+              <textarea class="comment-textarea" id="new-comment" placeholder="Add a comment…"></textarea>
+              <div class="comment-send-row">
+                <button class="btn btn-primary" style="font-size:12px;padding:6px 14px;" onclick="addComment()">Post</button>
+              </div>
+            </div>
+            <div id="comments-list"></div>
+          </div>
+          <!-- Outline -->
+          <div class="right-section" id="tab-outline">
+            <div class="section-title">Document Outline</div>
+            <div id="outline-list"></div>
+          </div>
+          <!-- Info -->
+          <div class="right-section" id="tab-info">
+            <div class="section-title">Document Info</div>
+            <div id="doc-info-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Doc Modal -->
+  <div class="modal-overlay" id="new-doc-modal">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>Create New Document</h3>
+        <button class="modal-close" onclick="closeModal('new-doc-modal')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Document Title</label>
+          <input class="form-input" type="text" placeholder="Untitled Document" id="new-doc-title" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Choose a Template</label>
+          <div class="template-grid" id="template-grid">
+            <div class="template-card selected" onclick="selectTemplate(this,'blank')">
+              <div class="t-icon">📄</div>
+              <div class="t-name">Blank</div>
+            </div>
+            <div class="template-card" onclick="selectTemplate(this,'meeting')">
+              <div class="t-icon">📋</div>
+              <div class="t-name">Meeting Notes</div>
+            </div>
+            <div class="template-card" onclick="selectTemplate(this,'spec')">
+              <div class="t-icon">⚙️</div>
+              <div class="t-name">Product Spec</div>
+            </div>
+            <div class="template-card" onclick="selectTemplate(this,'roadmap')">
+              <div class="t-icon">🗺️</div>
+              <div class="t-name">Roadmap</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-outline" onclick="closeModal('new-doc-modal')">Cancel</button>
+        <button class="btn btn-primary" onclick="createDoc()">Create Document</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Modal -->
+  <div class="modal-overlay" id="share-modal">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>Share Document</h3>
+        <button class="modal-close" onclick="closeModal('share-modal')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Invite People</label>
+          <div style="display:flex;gap:8px;">
+            <input class="form-input" type="email" placeholder="Enter email address…" id="share-email" style="flex:1;" />
+            <select class="form-select" style="width:100px;">
+              <option>Can edit</option><option>Can view</option><option>Can comment</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <div class="form-label" style="margin-bottom:10px;">People with access</div>
+          <div style="display:flex;flex-direction:column;gap:10px;" id="share-list">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="av" style="background:linear-gradient(135deg,#7c3aed,#db2777);width:32px;height:32px;font-size:12px;">S</div>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:600;color:#111827;">Samad Abdul</div><div style="font-size:12px;color:#9ca3af;">samadabdul2157@gmail.com</div></div>
+              <span style="font-size:12px;font-weight:600;color:#7c3aed;">Owner</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="av" style="background:linear-gradient(135deg,#0ea5e9,#6366f1);width:32px;height:32px;font-size:12px;">A</div>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:600;color:#111827;">Alex Rivera</div><div style="font-size:12px;color:#9ca3af;">alex@company.com</div></div>
+              <span style="font-size:12px;color:#6b7280;">Can edit</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="av" style="background:linear-gradient(135deg,#f59e0b,#ef4444);width:32px;height:32px;font-size:12px;">J</div>
+              <div style="flex:1;"><div style="font-size:13px;font-weight:600;color:#111827;">Jordan Lee</div><div style="font-size:12px;color:#9ca3af;">jordan@company.com</div></div>
+              <span style="font-size:12px;color:#6b7280;">Can view</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Link Access</label>
+          <div style="display:flex;gap:8px;align-items:center;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:8px 12px;">
+            <svg style="width:14px;height:14px;color:#9ca3af;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/></svg>
+            <span style="font-size:12px;color:#6b7280;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">https://co.app/doc/a1b2c3d4</span>
+            <button class="btn btn-outline" style="padding:5px 10px;font-size:12px;" onclick="copyLink()">Copy</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-ghost" onclick="closeModal('share-modal')">Close</button>
+        <button class="btn btn-primary" onclick="sendInvite()">Send Invite</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+    <span id="toast-msg">Done!</span>
+  </div>
+
+<script>
+  /* ─── Data ─── */
+  var docs = [
+    { id:1, title:'Q2 2026 Product Roadmap', icon:'🗺️', iconBg:'#f5f3ff', type:'roadmap', owner:'Samad Abdul', shared:false, pinned:true, updated:'2 hours ago', words:1840, collaborators:[{init:'S',color:'#7c3aed'},{init:'A',color:'#0ea5e9'},{init:'J',color:'#f59e0b'}], active:true, comments:4,
+      content:'## Overview\nThis document outlines our product strategy and key initiatives for Q2 2026.\n\n## Goals\n- Launch v2.0 of the core editor\n- Expand team collaboration features\n- Improve mobile experience\n- Reduce onboarding friction by 40%\n\n## Key Milestones\n\n### April\n- Complete design system overhaul\n- Ship real-time cursor support\n\n### May\n- Beta launch of AI writing assistant\n- Onboarding flow redesign\n\n### June\n- Public launch of v2.0\n- Partner integrations (Slack, Notion, Linear)' },
+    { id:2, title:'Engineering Design Doc: Editor v2', icon:'⚙️', iconBg:'#eff6ff', type:'spec', owner:'Samad Abdul', shared:false, pinned:true, updated:'Yesterday', words:3200, collaborators:[{init:'S',color:'#7c3aed'},{init:'A',color:'#0ea5e9'}], active:false, comments:8,
+      content:'## Summary\nThis document describes the technical architecture for the new Co editor v2.\n\n## Background\nThe current editor uses a simple textarea approach which limits our ability to add rich features like inline comments, mentions, and real-time cursors.\n\n## Proposed Solution\nMigrate to a block-based editor using a custom data model.\n\n## Architecture\n\n### Data Model\nEach document is represented as a tree of blocks. Each block has:\n- id: unique identifier\n- type: text, heading, image, table, etc.\n- content: block-specific data\n- children: nested blocks\n\n### Real-time Sync\nWe use CRDTs for conflict-free concurrent editing.' },
+    { id:3, title:'Team Meeting Notes — May 9', icon:'📋', iconBg:'#f0fdf4', type:'meeting', owner:'Alex Rivera', shared:true, pinned:false, updated:'3 days ago', words:620, collaborators:[{init:'A',color:'#0ea5e9'},{init:'S',color:'#7c3aed'},{init:'J',color:'#f59e0b'}], active:false, comments:2,
+      content:'## Attendees\nSamad Abdul, Alex Rivera, Jordan Lee, Maria Chen\n\n## Agenda\n1. Sprint review\n2. Upcoming roadmap items\n3. Hiring update\n4. AOB\n\n## Notes\n\n### Sprint Review\n- Completed: Real-time presence indicators, Comment threading, Doc search improvements\n- Carry-over: Mobile editor refinements\n\n### Upcoming Items\n- Editor v2 kickoff next week\n- Design review Thursday 2pm\n\n### Hiring\n- 2 senior engineer candidates in final rounds\n- Offer extended to designer candidate' },
+    { id:4, title:'User Research Synthesis — Onboarding', icon:'📊', iconBg:'#fff7ed', type:'spec', owner:'Jordan Lee', shared:true, pinned:false, updated:'1 week ago', words:2100, collaborators:[{init:'J',color:'#f59e0b'},{init:'S',color:'#7c3aed'}], active:false, comments:6,
+      content:'## Research Goals\nUnderstand pain points in the current onboarding experience and identify opportunities to improve activation rates.\n\n## Methodology\n- 12 user interviews (new signups, 1-4 weeks)\n- Session recordings analysis (n=200)\n- Survey (n=1,400)\n\n## Key Findings\n\n### Finding 1: Blank Canvas Problem\n68% of users reported feeling overwhelmed by a blank document on first launch.\n\n### Finding 2: Template Discovery\nOnly 24% of users discovered templates on their own.\n\n### Finding 3: Collaboration Intent\n82% signed up specifically to collaborate — yet 61% never invited a teammate in the first week.\n\n## Recommendations\n1. Show template picker on first new doc creation\n2. Add guided tour for key features\n3. Surface "invite teammate" CTA prominently in empty state' },
+    { id:5, title:'Brand Guidelines 2026', icon:'🎨', iconBg:'#fdf2f8', type:'spec', owner:'Samad Abdul', shared:false, pinned:false, updated:'2 weeks ago', words:890, collaborators:[{init:'S',color:'#7c3aed'}], active:false, comments:0,
+      content:'## Overview\nThis document defines the visual identity standards for the Co brand.\n\n## Logo\nThe Co wordmark uses our custom typeface at 800 weight. Minimum size: 24px.\n\n## Colors\n\n### Primary\n- Violet 600: #7c3aed\n- Violet 700: #6d28d9\n- Violet 900: #4c1d95\n\n### Neutral\n- Gray 900: #111827\n- Gray 500: #6b7280\n- Gray 100: #f3f4f6\n\n## Typography\n- Display: Inter 800\n- Body: Inter 400/500\n- Code: JetBrains Mono' },
+    { id:6, title:'Sprint 14 Planning', icon:'📅', iconBg:'#f0fdf4', type:'meeting', owner:'Alex Rivera', shared:true, pinned:false, updated:'3 weeks ago', words:430, collaborators:[{init:'A',color:'#0ea5e9'},{init:'S',color:'#7c3aed'},{init:'J',color:'#f59e0b'}], active:false, comments:1,
+      content:'## Sprint Goal\nShip real-time presence and lay groundwork for comment threading.\n\n## Stories\n\n### Must Have\n- [ ] Presence indicator in editor topbar\n- [ ] Colored cursors per collaborator\n- [ ] Comment anchoring to text ranges\n\n### Should Have\n- [ ] Notification for new comments\n- [ ] @mention in comments\n\n### Nice to Have\n- [ ] Emoji reactions on comments\n- [ ] Comment resolution flow' }
+  ];
+
+  var templateContents = {
+    blank: '',
+    meeting: '## Attendees\n\n## Agenda\n1. \n2. \n3. \n\n## Notes\n\n## Action Items\n- [ ] ',
+    spec: '## Summary\n\n## Background\n\n## Goals\n\n## Proposed Solution\n\n## Open Questions\n',
+    roadmap: '## Overview\n\n## Goals\n- \n- \n- \n\n## Milestones\n\n### Q1\n\n### Q2\n\n### Q3\n'
+  };
+
+  var presenceUsers = [
+    { init:'A', color:'#0ea5e9', name:'Alex Rivera' },
+    { init:'J', color:'#f59e0b', name:'Jordan Lee' }
+  ];
+
+  var comments = [
+    { id:1, author:'Alex Rivera', init:'A', color:'#0ea5e9', time:'2h ago', body:'Should we add a section on integration timelines? The partnerships team needs visibility on this.' },
+    { id:2, author:'Jordan Lee', init:'J', color:'#f59e0b', time:'1h ago', body:'Agreed — also flagging that the June milestone might slip. We\'re running behind on the Slack integration.' },
+    { id:3, author:'Samad Abdul', init:'S', color:'#7c3aed', time:'45m ago', body:'Good point, Jordan. I\'ve updated the timeline to reflect this. Let\'s discuss in tomorrow\'s sync.' }
+  ];
+
+  var currentDocId = null;
+  var docFilter = 'all';
+  var docSearch = '';
+  var docView = 'grid';
+  var selectedTemplate = 'blank';
+  var saveTimer = null;
+
+  /* ─── Docs List ─── */
+  function filterDocs(val) { docSearch = val; renderDocs(); }
+  function setDocFilter(f, el) {
+    docFilter = f;
+    document.querySelectorAll('.pill').forEach(function(p){p.classList.remove('active');});
+    el.classList.add('active');
+    renderDocs();
+  }
+  function setDocView(v, el) {
+    docView = v;
+    document.querySelectorAll('.vt-btn').forEach(function(b){b.classList.remove('active');});
+    el.classList.add('active');
+    renderDocs();
+  }
+
+  function renderDocs() {
+    var filtered = docs.filter(function(d){
+      if (docFilter === 'mine' && d.owner !== 'Samad Abdul') return false;
+      if (docFilter === 'shared' && !d.shared) return false;
+      if (docSearch && d.title.toLowerCase().indexOf(docSearch.toLowerCase()) === -1) return false;
+      return true;
+    });
+    var pinned = filtered.filter(function(d){ return d.pinned; });
+    var recent = filtered.filter(function(d){ return !d.pinned; });
+    var pinnedSec = document.getElementById('pinned-section');
+    pinnedSec.style.display = pinned.length ? 'block' : 'none';
+    if (pinned.length) document.getElementById('pinned-grid').innerHTML = pinned.map(renderDocCard).join('');
+    var container = document.getElementById('docs-container');
+    if (docView === 'grid') {
+      container.className = 'docs-grid';
+      container.innerHTML = recent.map(renderDocCard).join('');
+    } else {
+      container.className = 'docs-list-view';
+      container.innerHTML = recent.map(renderDocListItem).join('');
+    }
+    document.getElementById('docs-subtitle').textContent = docs.length + ' documents · ' + docs.filter(function(d){return d.shared;}).length + ' shared with you';
+  }
+
+  function renderDocCard(d) {
+    var collabs = d.collaborators.map(function(c){
+      return '<div class="doc-collab-av" style="background:'+c.color+';width:22px;height:22px;">'+c.init+'</div>';
+    }).join('');
+    return '<div class="doc-card" onclick="openDoc('+d.id+')">' +
+      '<div style="display:flex;align-items:flex-start;justify-content:space-between;">' +
+        '<div class="doc-icon" style="background:'+d.iconBg+'">'+d.icon+'</div>' +
+        '<div class="doc-status-dot '+(d.active?'active':'idle')+'"></div>' +
+      '</div>' +
+      '<div>' +
+        '<div class="doc-title">'+d.title+'</div>' +
+        '<div class="doc-meta">Updated '+d.updated+(d.comments?' · '+d.comments+' comments':'')+'</div>' +
+      '</div>' +
+      '<div class="doc-footer">' +
+        '<div class="doc-collaborators">'+collabs+'</div>' +
+        '<span style="font-size:11px;color:#9ca3af;">'+d.words.toLocaleString()+' words</span>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function renderDocListItem(d) {
+    var collabs = d.collaborators.map(function(c){
+      return '<div class="doc-collab-av" style="background:'+c.color+';width:22px;height:22px;">'+c.init+'</div>';
+    }).join('');
+    return '<div class="doc-list-item" onclick="openDoc('+d.id+')">' +
+      '<div class="doc-list-icon" style="background:'+d.iconBg+'">'+d.icon+'</div>' +
+      '<div><div class="doc-list-title">'+d.title+'</div><div class="doc-list-meta">Updated '+d.updated+' · '+d.owner+'</div></div>' +
+      '<div class="doc-list-right">' +
+        '<div class="doc-list-collab">'+collabs+'</div>' +
+        '<span class="doc-status-dot '+(d.active?'active':'idle')+'" style="margin-left:10px;"></span>' +
+      '</div>' +
+    '</div>';
+  }
+
+  /* ─── Editor ─── */
+  function openDoc(id) {
+    currentDocId = id;
+    var d = docs.find(function(x){return x.id===id;});
+    document.getElementById('editor-title').value = d.title;
+    document.getElementById('doc-title-display').textContent = d.title;
+    document.getElementById('doc-editor-area').value = d.content || '';
+    renderPresence(d);
+    renderComments(id);
+    renderOutline(d.content || '');
+    renderDocInfo(d);
+    switchRightTab('comments', document.querySelector('.right-tab'));
+    document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
+    document.getElementById('view-editor').classList.add('active');
+  }
+
+  function goBack() {
+    document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
+    document.getElementById('view-docs').classList.add('active');
+    renderDocs();
+  }
+
+  function onTitleEdit(el) {
+    var id = currentDocId;
+    var d = docs.find(function(x){return x.id===id;});
+    if (d) d.title = el.textContent;
+    document.getElementById('editor-title').value = el.textContent;
+    triggerSave();
+  }
+
+  function onDocEdit() {
+    var id = currentDocId;
+    var d = docs.find(function(x){return x.id===id;});
+    if (d) {
+      d.content = document.getElementById('doc-editor-area').value;
+      d.words = d.content.trim() ? d.content.trim().split(/\s+/).length : 0;
+      d.updated = 'Just now';
+      renderOutline(d.content);
+      renderDocInfo(d);
+    }
+    triggerSave();
+  }
+
+  function triggerSave() {
+    document.getElementById('save-status').innerHTML = '<div class="saving-dot" style="background:#f59e0b;"></div> Saving…';
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(function(){
+      document.getElementById('save-status').innerHTML = '<div class="saving-dot"></div> Saved';
+    }, 1200);
+  }
+
+  function renderPresence(d) {
+    var stack = document.getElementById('presence-stack');
+    var online = presenceUsers.slice(0, 2);
+    stack.innerHTML = online.map(function(u){
+      return '<div class="presence-av" style="background:'+u.color+'" title="'+u.name+' is editing">'+u.init+'</div>';
+    }).join('') + '<span class="presence-label" style="margin-left:6px;">'+online.length+' online</span>';
+  }
+
+  function renderComments(docId) {
+    var list = document.getElementById('comments-list');
+    var docComments = docId === 1 ? comments : docId === 2 ? comments.slice(0,2) : docId === 3 ? comments.slice(1,3) : [];
+    if (!docComments.length) {
+      list.innerHTML = '<div style="text-align:center;padding:32px 16px;"><p style="font-size:13px;color:#9ca3af;">No comments yet. Start a discussion!</p></div>';
+      return;
+    }
+    list.innerHTML = docComments.map(function(c){
+      return '<div class="comment-item">' +
+        '<div class="comment-header">' +
+          '<div class="comment-av" style="background:'+c.color+'">'+c.init+'</div>' +
+          '<span class="comment-author">'+c.author+'</span>' +
+          '<span class="comment-time">'+c.time+'</span>' +
+        '</div>' +
+        '<div class="comment-body">'+c.body+'</div>' +
+        '<div class="comment-actions">' +
+          '<button class="comment-action" onclick="this.textContent=this.textContent===\'👍 1\'?\'👍\':\'👍 1\'">👍</button>' +
+          '<button class="comment-action" onclick="replyToComment(this)">Reply</button>' +
+          '<button class="comment-action">Resolve</button>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function addComment() {
+    var ta = document.getElementById('new-comment');
+    var val = ta.value.trim();
+    if (!val) return;
+    var newC = { id: Date.now(), author: 'Samad Abdul', init: 'S', color: '#7c3aed', time: 'Just now', body: val };
+    comments.push(newC);
+    ta.value = '';
+    renderComments(currentDocId);
+    showToast('Comment added');
+  }
+
+  function replyToComment(btn) {
+    var ta = document.getElementById('new-comment');
+    ta.placeholder = 'Replying…';
+    ta.focus();
+  }
+
+  function renderOutline(content) {
+    var lines = content.split('\n');
+    var headings = lines.filter(function(l){ return l.startsWith('#'); });
+    var ol = document.getElementById('outline-list');
+    if (!headings.length) {
+      ol.innerHTML = '<p style="font-size:13px;color:#9ca3af;">No headings found. Add ## headings to see an outline.</p>';
+      return;
+    }
+    ol.innerHTML = headings.map(function(h){
+      var level = h.match(/^#+/)[0].length;
+      var text = h.replace(/^#+\s*/, '');
+      return '<div class="outline-item" style="padding-left:'+(level-1)*12+'px;">' +
+        '<div class="outline-dot"></div>' +
+        '<span style="font-size:'+(level===1?'14':level===2?'13':'12')+'px;font-weight:'+(level===1?'700':level===2?'600':'500')+';">'+text+'</span>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderDocInfo(d) {
+    document.getElementById('doc-info-list').innerHTML =
+      '<div class="info-row"><span class="info-key">Owner</span><span class="info-val">'+d.owner+'</span></div>' +
+      '<div class="info-row"><span class="info-key">Last edited</span><span class="info-val">'+d.updated+'</span></div>' +
+      '<div class="info-row"><span class="info-key">Word count</span><span class="info-val">'+d.words.toLocaleString()+'</span></div>' +
+      '<div class="info-row"><span class="info-key">Comments</span><span class="info-val">'+(d.comments||0)+'</span></div>' +
+      '<div class="info-row"><span class="info-key">Collaborators</span><span class="info-val">'+d.collaborators.length+'</span></div>' +
+      '<div class="info-row"><span class="info-key">Type</span><span class="info-val">'+(d.type||'Document')+'</span></div>';
+  }
+
+  function switchRightTab(name, el) {
+    document.querySelectorAll('.right-tab').forEach(function(t){t.classList.remove('active');});
+    document.querySelectorAll('.right-section').forEach(function(s){s.classList.remove('active');});
+    document.getElementById('tab-'+name).classList.add('active');
+    el.classList.add('active');
+  }
+
+  /* ─── Formatting ─── */
+  function fmtText(type) {
+    var ta = document.getElementById('doc-editor-area');
+    var sel = ta.value.substring(ta.selectionStart, ta.selectionEnd);
+    var pre = ta.value.substring(0, ta.selectionStart);
+    var post = ta.value.substring(ta.selectionEnd);
+    var insert = sel;
+    if (type==='bold') insert='**'+sel+'**';
+    else if (type==='italic') insert='*'+sel+'*';
+    else if (type==='underline') insert='__'+sel+'__';
+    else if (type==='h1') insert='\n# '+(sel||'Heading 1')+'\n';
+    else if (type==='h2') insert='\n## '+(sel||'Heading 2')+'\n';
+    else if (type==='h3') insert='\n### '+(sel||'Heading 3')+'\n';
+    else if (type==='ul') insert='\n- '+(sel||'List item')+'\n';
+    else if (type==='ol') insert='\n1. '+(sel||'List item')+'\n';
+    else if (type==='blockquote') insert='\n> '+(sel||'Quote')+'\n';
+    else if (type==='code') insert='`'+sel+'`';
+    else if (type==='link') insert='['+sel+'](url)';
+    else if (type==='table') insert='\n| Header | Header | Header |\n|--------|--------|--------|\n| Cell   | Cell   | Cell   |\n';
+    ta.value = pre + insert + post;
+    ta.focus();
+    onDocEdit();
+  }
+
+  /* ─── New Doc ─── */
+  function selectTemplate(el, name) {
+    document.querySelectorAll('.template-card').forEach(function(c){c.classList.remove('selected');});
+    el.classList.add('selected');
+    selectedTemplate = name;
+  }
+
+  function createDoc() {
+    var titleInput = document.getElementById('new-doc-title');
+    var title = titleInput.value.trim() || 'Untitled Document';
+    var newDoc = {
+      id: Date.now(), title: title, icon: '📄', iconBg: '#f5f3ff',
+      type: selectedTemplate, owner: 'Samad Abdul', shared: false, pinned: false,
+      updated: 'Just now', words: 0, collaborators: [{init:'S',color:'#7c3aed'}],
+      active: false, comments: 0, content: templateContents[selectedTemplate] || ''
+    };
+    docs.unshift(newDoc);
+    titleInput.value = '';
+    closeModal('new-doc-modal');
+    openDoc(newDoc.id);
+  }
+
+  /* ─── Share ─── */
+  function sendInvite() {
+    var email = document.getElementById('share-email').value.trim();
+    if (!email) { alert('Please enter an email address.'); return; }
+    document.getElementById('share-email').value = '';
+    closeModal('share-modal');
+    showToast('Invite sent to ' + email);
+  }
+
+  function copyLink() {
+    showToast('Link copied to clipboard!');
+  }
+
+  /* ─── Modal ─── */
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+  /* ─── Toast ─── */
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 2500);
+  }
+
+  /* ─── Init ─── */
+  renderDocs();
+</script>
+</body>
+</html>
