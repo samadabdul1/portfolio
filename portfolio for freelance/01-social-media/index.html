@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pulse</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    :root{--bg:#fafafa;--surface:#fff;--border:#dbdbdb;--text:#262626;--muted:#8e8e8e;--accent:#0095f6;--danger:#ed4956;}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+    a{text-decoration:none;color:inherit;}
+    button{font-family:inherit;cursor:pointer;}
+    input,textarea{font-family:inherit;}
+
+    /* ── NAV ── */
+    .nav{position:fixed;top:0;left:0;right:0;height:60px;background:var(--surface);border-bottom:1px solid var(--border);z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 20px;max-width:100%;gap:12px;}
+    .nav-logo{font-size:22px;font-weight:800;letter-spacing:-0.5px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    .nav-search-wrap{flex:1;max-width:268px;position:relative;}
+    .nav-search{width:100%;padding:8px 12px 8px 36px;background:#efefef;border:none;border-radius:8px;font-size:14px;outline:none;color:var(--text);}
+    .nav-search::placeholder{color:var(--muted);}
+    .nav-search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted);}
+    .nav-icons{display:flex;align-items:center;gap:18px;}
+    .nav-icon{background:none;border:none;padding:4px;display:flex;align-items:center;color:var(--text);position:relative;}
+    .nav-icon svg{width:24px;height:24px;}
+    .nav-icon .badge{position:absolute;top:-2px;right:-4px;background:var(--danger);color:#fff;font-size:10px;font-weight:700;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;line-height:1;}
+    .nav-av{width:28px;height:28px;border-radius:50%;background:linear-gradient(45deg,#f09433,#cc2366);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;cursor:pointer;}
+
+    /* ── LAYOUT ── */
+    .app{display:grid;grid-template-columns:244px 1fr 340px;max-width:1200px;margin:0 auto;padding-top:60px;gap:28px;padding-left:0;padding-right:0;}
+    @media(max-width:1100px){.app{grid-template-columns:72px 1fr;}.right-col{display:none;}}
+    @media(max-width:700px){.app{grid-template-columns:1fr;}.left-col{display:none;}}
+
+    /* ── LEFT SIDEBAR ── */
+    .left-col{position:sticky;top:60px;height:calc(100vh - 60px);padding:20px 12px;display:flex;flex-direction:column;gap:4px;}
+    .sidebar-item{display:flex;align-items:center;gap:16px;padding:12px 12px;border-radius:10px;font-size:15px;font-weight:500;cursor:pointer;transition:background 0.15s;border:none;background:none;color:var(--text);width:100%;text-align:left;}
+    .sidebar-item:hover{background:#f0f0f0;}
+    .sidebar-item.active{font-weight:700;}
+    .sidebar-item svg{width:26px;height:26px;flex-shrink:0;}
+    .sidebar-item span{white-space:nowrap;overflow:hidden;}
+    @media(max-width:1100px){.sidebar-item span{display:none;}.sidebar-item{justify-content:center;}}
+    .sidebar-av{width:26px;height:26px;border-radius:50%;background:linear-gradient(45deg,#f09433,#cc2366);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+    .sidebar-logo{font-size:24px;font-weight:800;padding:16px 12px 8px;letter-spacing:-0.5px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+    @media(max-width:1100px){.sidebar-logo{display:none;}}
+
+    /* ── VIEWS ── */
+    .view{display:none;}
+    .view.active{display:block;}
+
+    /* ── FEED ── */
+    .feed-col{padding:20px 0 40px;max-width:468px;margin:0 auto;width:100%;}
+
+    /* Stories */
+    .stories-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:24px;overflow-x:auto;scrollbar-width:none;}
+    .stories-wrap::-webkit-scrollbar{display:none;}
+    .stories-row{display:flex;gap:14px;align-items:flex-start;}
+    .story-item{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;}
+    .story-ring{width:56px;height:56px;border-radius:50%;padding:2.5px;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);}
+    .story-ring.seen{background:#c7c7c7;}
+    .story-av{width:100%;height:100%;border-radius:50%;background:#efefef;border:2.5px solid #fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:var(--text);overflow:hidden;}
+    .story-av img{width:100%;height:100%;object-fit:cover;}
+    .story-name{font-size:11px;color:var(--text);text-align:center;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .story-add{width:56px;height:56px;border-radius:50%;background:#efefef;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;position:relative;}
+    .story-add svg{width:20px;height:20px;color:var(--accent);}
+
+    /* Post card */
+    .post-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:20px;overflow:hidden;}
+    .post-header{display:flex;align-items:center;gap:10px;padding:12px 16px;}
+    .post-av{width:34px;height:34px;border-radius:50%;padding:2px;background:linear-gradient(45deg,#f09433,#cc2366);flex-shrink:0;cursor:pointer;}
+    .post-av-inner{width:100%;height:100%;border-radius:50%;background:#efefef;border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;overflow:hidden;}
+    .post-av-inner img{width:100%;height:100%;object-fit:cover;}
+    .post-user{font-size:14px;font-weight:700;cursor:pointer;}
+    .post-user:hover{text-decoration:underline;}
+    .post-location{font-size:11px;color:var(--muted);}
+    .post-more{margin-left:auto;background:none;border:none;color:var(--text);padding:4px;display:flex;}
+    .post-more svg{width:20px;height:20px;}
+    .post-img{width:100%;aspect-ratio:1;object-fit:cover;display:block;cursor:pointer;}
+    .post-img.tall{aspect-ratio:4/5;}
+    .post-actions{padding:8px 12px 4px;display:flex;align-items:center;gap:4px;}
+    .action-btn{background:none;border:none;padding:6px;display:flex;align-items:center;color:var(--text);transition:transform 0.1s;}
+    .action-btn:hover{transform:scale(1.15);}
+    .action-btn svg{width:24px;height:24px;}
+    .action-btn.liked svg{fill:var(--danger);color:var(--danger);}
+    .action-btn.saved svg{fill:var(--text);}
+    .save-btn{margin-left:auto;}
+    .post-likes{padding:0 16px 6px;font-size:14px;font-weight:700;cursor:pointer;}
+    .post-caption{padding:0 16px 8px;font-size:14px;line-height:1.5;}
+    .post-caption strong{font-weight:700;margin-right:6px;cursor:pointer;}
+    .post-comments-count{padding:0 16px;font-size:14px;color:var(--muted);cursor:pointer;margin-bottom:6px;}
+    .post-comment-input{border-top:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;}
+    .comment-av-sm{width:26px;height:26px;border-radius:50%;background:linear-gradient(45deg,#f09433,#cc2366);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+    .comment-input{flex:1;border:none;outline:none;font-size:14px;background:transparent;color:var(--text);}
+    .comment-input::placeholder{color:var(--muted);}
+    .comment-post-btn{font-size:14px;font-weight:700;color:var(--accent);background:none;border:none;opacity:0.5;transition:opacity 0.15s;}
+    .comment-post-btn.active{opacity:1;}
+    .post-time{padding:0 16px 12px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.3px;}
+
+    /* Comments expanded */
+    .comments-expanded{padding:0 16px 8px;border-top:1px solid var(--border);margin-top:4px;}
+    .comment-row{display:flex;gap:8px;padding:6px 0;align-items:flex-start;}
+    .comment-row-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;}
+    .comment-row-body{flex:1;font-size:13px;line-height:1.4;}
+    .comment-row-body strong{font-weight:700;margin-right:5px;}
+    .comment-row-time{font-size:11px;color:var(--muted);}
+    .comment-row-like{font-size:11px;font-weight:700;color:var(--muted);background:none;border:none;margin-left:8px;}
+
+    /* Suggestions / right col */
+    .right-col{padding:28px 0;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;}
+    .profile-mini{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+    .profile-mini-av{width:44px;height:44px;border-radius:50%;background:linear-gradient(45deg,#f09433,#cc2366);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;}
+    .profile-mini-name{font-size:14px;font-weight:700;}
+    .profile-mini-handle{font-size:12px;color:var(--muted);}
+    .switch-btn{margin-left:auto;font-size:12px;font-weight:700;color:var(--accent);background:none;border:none;}
+    .suggestions-label{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+    .suggestions-label span{font-size:13px;font-weight:700;color:var(--muted);}
+    .suggestions-label button{font-size:12px;font-weight:700;color:var(--text);background:none;border:none;}
+    .suggestion-item{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+    .suggestion-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+    .suggestion-name{font-size:13px;font-weight:700;line-height:1.2;}
+    .suggestion-sub{font-size:11px;color:var(--muted);}
+    .follow-btn{margin-left:auto;font-size:13px;font-weight:700;color:var(--accent);background:none;border:none;}
+    .follow-btn.following{color:var(--muted);}
+
+    /* ── EXPLORE ── */
+    .explore-header{padding:20px 0 16px;font-size:16px;font-weight:700;}
+    .explore-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;}
+    .explore-cell{aspect-ratio:1;overflow:hidden;cursor:pointer;position:relative;background:#efefef;}
+    .explore-cell img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.3s;}
+    .explore-cell:hover img{transform:scale(1.05);}
+    .explore-cell.tall{grid-row:span 2;aspect-ratio:auto;}
+    .explore-cell .hover-info{position:absolute;inset:0;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;gap:18px;opacity:0;transition:opacity 0.2s;color:#fff;font-size:15px;font-weight:700;}
+    .explore-cell:hover .hover-info{opacity:1;}
+    .hover-info span{display:flex;align-items:center;gap:5px;}
+
+    /* ── PROFILE ── */
+    .profile-wrap{max-width:935px;margin:0 auto;padding:28px 20px 60px;}
+    .profile-top{display:flex;align-items:flex-start;gap:60px;margin-bottom:44px;}
+    .profile-av-wrap{position:relative;flex-shrink:0;}
+    .profile-av-lg{width:150px;height:150px;border-radius:50%;background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366);padding:4px;cursor:pointer;}
+    .profile-av-lg-inner{width:100%;height:100%;border-radius:50%;background:#efefef;border:4px solid #fff;display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:700;}
+    .profile-info{flex:1;}
+    .profile-username-row{display:flex;align-items:center;gap:16px;margin-bottom:14px;flex-wrap:wrap;}
+    .profile-username{font-size:20px;font-weight:300;letter-spacing:-0.2px;}
+    .profile-edit-btn,.profile-follow-btn{padding:7px 18px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff;}
+    .profile-follow-btn{background:var(--accent);color:#fff;border-color:var(--accent);}
+    .profile-stats{display:flex;gap:36px;margin-bottom:16px;}
+    .profile-stat{font-size:16px;color:var(--text);}
+    .profile-stat strong{font-weight:700;}
+    .profile-name{font-size:14px;font-weight:700;margin-bottom:4px;}
+    .profile-bio{font-size:14px;line-height:1.5;max-width:400px;}
+    .profile-tabs{display:flex;border-top:1px solid var(--border);margin-bottom:4px;}
+    .profile-tab{flex:1;max-width:200px;display:flex;align-items:center;justify-content:center;gap:6px;padding:14px 0;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);border-top:1px solid transparent;margin-top:-1px;cursor:pointer;background:none;border-left:none;border-right:none;border-bottom:none;}
+    .profile-tab.active{color:var(--text);border-top-color:var(--text);}
+    .profile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:4px;}
+    .profile-grid-item{aspect-ratio:1;overflow:hidden;cursor:pointer;position:relative;background:#efefef;}
+    .profile-grid-item img{width:100%;height:100%;object-fit:cover;display:block;transition:transform 0.3s;}
+    .profile-grid-item:hover img{transform:scale(1.05);}
+    .profile-grid-item .hover-info{position:absolute;inset:0;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;gap:18px;opacity:0;transition:opacity 0.2s;color:#fff;font-size:14px;font-weight:700;}
+    .profile-grid-item:hover .hover-info{opacity:1;}
+
+    /* ── CREATE POST MODAL ── */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;align-items:center;justify-content:center;}
+    .modal-overlay.open{display:flex;}
+    .create-modal{background:#fff;border-radius:12px;width:700px;max-width:95vw;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;}
+    .create-modal-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .create-modal-head h3{font-size:16px;font-weight:700;text-align:center;flex:1;}
+    .modal-close{background:none;border:none;font-size:24px;color:var(--text);cursor:pointer;line-height:1;padding:0;}
+    .modal-share-btn{font-size:14px;font-weight:700;color:var(--accent);background:none;border:none;}
+    .create-modal-body{display:flex;flex:1;overflow:hidden;}
+    .create-drop-zone{flex:1;background:#fafafa;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;min-height:400px;cursor:pointer;position:relative;}
+    .create-drop-zone svg{width:64px;height:64px;color:#262626;}
+    .create-drop-zone p{font-size:18px;font-weight:300;}
+    .create-drop-zone span{font-size:14px;color:var(--muted);}
+    .create-drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+    .create-preview{width:340px;flex-shrink:0;display:flex;flex-direction:column;}
+    .create-preview img{width:100%;aspect-ratio:1;object-fit:cover;display:block;}
+    .create-preview-form{padding:16px;flex:1;display:flex;flex-direction:column;gap:12px;}
+    .create-user-row{display:flex;align-items:center;gap:10px;}
+    .create-caption{width:100%;border:none;outline:none;font-size:15px;font-family:inherit;resize:none;min-height:120px;color:var(--text);}
+    .create-caption::placeholder{color:var(--muted);}
+    .caption-count{font-size:12px;color:var(--muted);text-align:right;}
+
+    /* ── POST DETAIL MODAL ── */
+    .post-modal{background:#fff;border-radius:4px;width:900px;max-width:95vw;max-height:90vh;display:flex;overflow:hidden;}
+    .post-modal-img{width:50%;flex-shrink:0;background:#000;display:flex;align-items:center;justify-content:center;}
+    .post-modal-img img{width:100%;height:100%;object-fit:contain;display:block;}
+    .post-modal-right{flex:1;display:flex;flex-direction:column;max-height:90vh;}
+    .post-modal-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+    .post-modal-comments{flex:1;overflow-y:auto;padding:16px;}
+    .post-modal-actions{padding:8px 16px 0;border-top:1px solid var(--border);}
+    .post-modal-likes{padding:4px 16px;font-size:14px;font-weight:700;}
+    .post-modal-input{padding:8px 16px 14px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;}
+    .post-modal-input input{flex:1;border:none;outline:none;font-size:14px;font-family:inherit;}
+
+    /* ── TOAST ── */
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#262626;color:#fff;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:600;display:none;z-index:300;white-space:nowrap;}
+    .toast.show{display:block;}
+  </style>
+</head>
+<body>
+
+<!-- Top Nav (mobile) -->
+<nav class="nav" style="display:none;" id="mobile-nav">
+  <span class="nav-logo">Pulse</span>
+  <div class="nav-icons">
+    <button class="nav-icon" onclick="openModal('create-modal')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" stroke-width="1.5"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v8m-4-4h8"/></svg>
+    </button>
+    <button class="nav-icon" onclick="showView('feed')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/></svg>
+      <span class="badge">3</span>
+    </button>
+    <div class="nav-av" onclick="showView('profile')">S</div>
+  </div>
+</nav>
+
+<div class="app" id="app">
+  <!-- Left sidebar -->
+  <aside class="left-col">
+    <div class="sidebar-logo">Pulse</div>
+    <button class="sidebar-item active" id="sb-feed" onclick="showView('feed')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
+      <span>Home</span>
+    </button>
+    <button class="sidebar-item" id="sb-explore" onclick="showView('explore')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 15.803 7.5 7.5 0 0015.803 15.803z"/></svg>
+      <span>Explore</span>
+    </button>
+    <button class="sidebar-item" onclick="openModal('create-modal')">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" stroke-width="1.8"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v8m-4-4h8"/></svg>
+      <span>Create</span>
+    </button>
+    <button class="sidebar-item" id="sb-profile" onclick="showView('profile')">
+      <div class="sidebar-av">S</div>
+      <span>Profile</span>
+    </button>
+    <button class="sidebar-item" style="margin-top:auto;">
+      <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>
+      <span>Dark mode</span>
+    </button>
+  </aside>
+
+  <!-- Feed -->
+  <main class="view active" id="view-feed">
+    <div class="feed-col">
+      <!-- Stories -->
+      <div class="stories-wrap">
+        <div class="stories-row" id="stories-row"></div>
+      </div>
+      <!-- Posts -->
+      <div id="posts-feed"></div>
+    </div>
+  </main>
+
+  <!-- Explore -->
+  <div class="view" id="view-explore">
+    <div style="max-width:935px;margin:0 auto;padding:0 20px 60px;">
+      <div class="explore-header">Explore</div>
+      <div class="explore-grid" id="explore-grid"></div>
+    </div>
+  </div>
+
+  <!-- Profile -->
+  <div class="view" id="view-profile">
+    <div class="profile-wrap">
+      <div class="profile-top">
+        <div class="profile-av-wrap">
+          <div class="profile-av-lg">
+            <div class="profile-av-lg-inner">S</div>
+          </div>
+        </div>
+        <div class="profile-info">
+          <div class="profile-username-row">
+            <span class="profile-username">samad.abdul</span>
+            <button class="profile-edit-btn">Edit profile</button>
+            <button onclick="showView('feed')" class="profile-edit-btn">
+              <svg style="width:16px;height:16px;display:inline;margin-right:4px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </button>
+          </div>
+          <div class="profile-stats">
+            <div class="profile-stat"><strong id="profile-post-count">0</strong> posts</div>
+            <div class="profile-stat"><strong>1,284</strong> followers</div>
+            <div class="profile-stat"><strong>482</strong> following</div>
+          </div>
+          <div class="profile-name">Samad Abdul</div>
+          <div class="profile-bio">Full-stack developer 🚀<br/>Building things that work.<br/>📍 London, UK</div>
+        </div>
+      </div>
+      <div class="profile-tabs">
+        <button class="profile-tab active" onclick="setProfileTab('posts',this)">
+          <svg style="width:13px;height:13px;" fill="currentColor" viewBox="0 0 24 24"><path d="M3 3h7v7H3zm0 11h7v7H3zm11-11h7v7h-7zm0 11h7v7h-7z"/></svg>
+          Posts
+        </button>
+        <button class="profile-tab" onclick="setProfileTab('saved',this)">
+          <svg style="width:13px;height:13px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg>
+          Saved
+        </button>
+      </div>
+      <div class="profile-grid" id="profile-grid"></div>
+    </div>
+  </div>
+
+  <!-- Right col -->
+  <aside class="right-col" id="right-col">
+    <div class="profile-mini">
+      <div class="profile-mini-av">S</div>
+      <div>
+        <div class="profile-mini-name">samad.abdul</div>
+        <div class="profile-mini-handle">Samad Abdul</div>
+      </div>
+      <button class="switch-btn">Switch</button>
+    </div>
+    <div class="suggestions-label">
+      <span>Suggested for you</span>
+      <button>See all</button>
+    </div>
+    <div id="suggestions-list"></div>
+    <div style="margin-top:24px;font-size:11px;color:var(--muted);line-height:2;">
+      About · Help · Press · API · Jobs · Privacy · Terms · Locations<br/>
+      © 2026 Pulse from Samad Abdul
+    </div>
+  </aside>
+</div>
+
+<!-- Create Post Modal -->
+<div class="modal-overlay" id="create-modal">
+  <div class="create-modal">
+    <div class="create-modal-head">
+      <button class="modal-close" onclick="closeModal('create-modal')">×</button>
+      <h3>Create new post</h3>
+      <button class="modal-share-btn" id="share-btn" onclick="sharePost()" style="opacity:0.4;pointer-events:none;">Share</button>
+    </div>
+    <div class="create-modal-body" id="create-body">
+      <div class="create-drop-zone" id="drop-zone">
+        <svg fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
+        <p>Drag photos and videos here</p>
+        <button style="background:#0095f6;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">Select from computer</button>
+        <input type="file" accept="image/*" onchange="handleFileSelect(event)" />
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Post Detail Modal -->
+<div class="modal-overlay" id="post-modal">
+  <div class="post-modal" id="post-modal-content"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── Storage helpers ── */
+function ls(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
+function lsSet(k,v){localStorage.setItem(k,JSON.stringify(v));}
+
+/* ── Static data ── */
+var STORIES=[
+  {id:1,user:'alex.r',init:'A',color:'#0ea5e9',seen:false},
+  {id:2,user:'jordan.l',init:'J',color:'#f59e0b',seen:false},
+  {id:3,user:'maya.k',init:'M',color:'#8b5cf6',seen:true},
+  {id:4,user:'chris.w',init:'C',color:'#10b981',seen:true},
+  {id:5,user:'priya.s',init:'P',color:'#ef4444',seen:true},
+  {id:6,user:'liam.b',init:'L',color:'#f97316',seen:true},
+];
+var SUGGESTIONS=[
+  {init:'R',color:'#a855f7',name:'rachel.w',sub:'Followed by alex.r'},
+  {init:'D',color:'#06b6d4',name:'dev.codes',sub:'Suggested for you'},
+  {init:'K',color:'#84cc16',name:'kai.designs',sub:'New to Pulse'},
+  {init:'N',color:'#f43f5e',name:'nina.art',sub:'Followed by jordan.l'},
+  {init:'T',color:'#f59e0b',name:'the.traveler',sub:'Suggested for you'},
+];
+var EXPLORE_IMGS=[
+  'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=400','https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=400',
+  'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=400','https://images.unsplash.com/photo-1593642632559-0c6d3fc62b89?w=400',
+  'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400','https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400',
+  'https://images.unsplash.com/photo-1587614382346-4ec70e388b28?w=400','https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400',
+  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400','https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=400',
+  'https://images.unsplash.com/photo-1547658719-da2b51169166?w=400','https://images.unsplash.com/photo-1618477388954-7852f32655ec?w=400',
+];
+var BASE_POSTS=[
+  {id:'p1',user:'alex.r',init:'A',color:'#0ea5e9',img:'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600',caption:'Late night coding sessions hit different 🖥️✨ #developer #coding #webdev',location:'London, UK',time:'2 HOURS AGO',likes:842,baseComments:[{init:'J',color:'#f59e0b',user:'jordan.l',text:'This setup is 🔥',time:'1h'},{init:'M',color:'#8b5cf6',user:'maya.k',text:'Goals honestly',time:'45m'}]},
+  {id:'p2',user:'maya.k',init:'M',color:'#8b5cf6',img:'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600',caption:'Golden hour at the mountains 🏔️🌅 Nothing beats this view after a long hike.',location:'Swiss Alps',time:'5 HOURS AGO',likes:2341,baseComments:[{init:'A',color:'#0ea5e9',user:'alex.r',text:'Stunning! 😍',time:'4h'},{init:'P',color:'#ef4444',user:'priya.s',text:'Adding this to my bucket list immediately',time:'3h'}]},
+  {id:'p3',user:'jordan.l',init:'J',color:'#f59e0b',img:'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600',caption:'Studio session 🎵 New track dropping next week. Stay tuned 🔊 #music #producer #hiphop',location:'LA, California',time:'8 HOURS AGO',likes:1876,baseComments:[{init:'C',color:'#10b981',user:'chris.w',text:'Can\'t wait!! 🙌',time:'7h'},{init:'L',color:'#f97316',user:'liam.b',text:'Send me a preview bro',time:'6h'}]},
+  {id:'p4',user:'priya.s',init:'P',color:'#ef4444',img:'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600',caption:'Homemade pasta from scratch 🍝 Three hours of work but so worth it. Recipe in bio!',location:'Milan, Italy',time:'12 HOURS AGO',likes:4102,baseComments:[{init:'M',color:'#8b5cf6',user:'maya.k',text:'This looks incredible!! 😋',time:'11h'},{init:'A',color:'#0ea5e9',user:'alex.r',text:'Saving this for the weekend',time:'10h'}]},
+  {id:'p5',user:'chris.w',init:'C',color:'#10b981',img:'https://images.unsplash.com/photo-1499336315816-097655dcfbda?w=600',caption:'Morning run ✅ 5am club is real. Consistency > motivation every single time 💪 #fitness #running',location:'Central Park, NYC',time:'1 DAY AGO',likes:987,baseComments:[{init:'J',color:'#f59e0b',user:'jordan.l',text:'Inspiring! I need to get back on this',time:'20h'}]},
+];
+
+/* ── State (from localStorage) ── */
+var likes = ls('pulse_likes') || {};
+var saved = ls('pulse_saved') || {};
+var comments = ls('pulse_comments') || {};
+var userPosts = ls('pulse_posts') || [];
+var following = ls('pulse_following') || {};
+var seenStories = ls('pulse_stories') || {};
+var newPostImg = null;
+
+function saveLikes(){lsSet('pulse_likes',likes);}
+function saveSaved(){lsSet('pulse_saved',saved);}
+function saveComments(){lsSet('pulse_comments',comments);}
+function saveUserPosts(){lsSet('pulse_posts',userPosts);}
+function saveFollowing(){lsSet('pulse_following',following);}
+function saveStories(){lsSet('pulse_stories',seenStories);}
+
+/* ── Helpers ── */
+function showView(name){
+  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('active');});
+  document.getElementById('view-'+name).classList.add('active');
+  document.querySelectorAll('.sidebar-item').forEach(function(s){s.classList.remove('active');});
+  var sb=document.getElementById('sb-'+name);
+  if(sb)sb.classList.add('active');
+  if(name==='profile')renderProfile();
+}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2000);}
+
+/* ── Stories ── */
+function renderStories(){
+  var row=document.getElementById('stories-row');
+  var html='<div class="story-item" onclick="openModal(\'create-modal\')">'
+    +'<div class="story-add"><svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg></div>'
+    +'<span class="story-name" style="color:#0095f6;font-weight:600;">Your story</span>'
+    +'</div>';
+  STORIES.forEach(function(s){
+    var seen=seenStories[s.id]||s.seen;
+    html+='<div class="story-item" onclick="viewStory('+s.id+')">'
+      +'<div class="story-ring'+(seen?' seen':'')+'"><div class="story-av" style="background:'+s.color+'20;color:'+s.color+';font-weight:700;">'+s.init+'</div></div>'
+      +'<span class="story-name">'+s.user+'</span>'
+      +'</div>';
+  });
+  row.innerHTML=html;
+}
+function viewStory(id){
+  seenStories[id]=true;saveStories();
+  showToast('Viewing @'+STORIES.find(function(s){return s.id===id;}).user+'\'s story');
+  renderStories();
+}
+
+/* ── Feed ── */
+function getAllPosts(){
+  var all=userPosts.slice().reverse().concat(BASE_POSTS);
+  return all;
+}
+function renderFeed(){
+  var feed=document.getElementById('posts-feed');
+  var posts=getAllPosts();
+  feed.innerHTML=posts.map(function(p){return renderPostCard(p);}).join('');
+}
+function renderPostCard(p){
+  var liked=likes[p.id]||false;
+  var isSaved=saved[p.id]||false;
+  var extraComments=comments[p.id]||[];
+  var allComments=(p.baseComments||[]).concat(extraComments);
+  var totalLikes=(p.likes||0)+(liked?1:0);
+  var html='<div class="post-card" id="card-'+p.id+'">'
+    +'<div class="post-header">'
+      +'<div class="post-av"><div class="post-av-inner" style="background:'+p.color+'20;color:'+p.color+';font-weight:700;">'+p.init+'</div></div>'
+      +'<div><div class="post-user" onclick="showView(\'profile\')">'+p.user+'</div>'+(p.location?'<div class="post-location">'+p.location+'</div>':'')+'</div>'
+      +'<button class="post-more"><svg fill="currentColor" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button>'
+    +'</div>'
+    +'<img class="post-img" src="'+p.img+'" alt="" loading="lazy" ondblclick="toggleLike(\''+p.id+'\')">'
+    +'<div class="post-actions">'
+      +'<button class="action-btn'+(liked?' liked':'')+'" onclick="toggleLike(\''+p.id+'\')">'
+        +'<svg fill="'+(liked?'currentColor':'none')+'" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>'
+      +'</button>'
+      +'<button class="action-btn" onclick="openPostModal(\''+p.id+'\')">'
+        +'<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20.25c4.97 0 9-3.694 9-8.25s-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.48.432.447.74 1.04.586 1.641a4.483 4.483 0 01-.923 1.785A5.969 5.969 0 006 21c1.282 0 2.47-.402 3.445-1.087.81.22 1.668.337 2.555.337z"/></svg>'
+      +'</button>'
+      +'<button class="action-btn" onclick="showToast(\'Link copied!\')">'
+        +'<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"/></svg>'
+      +'</button>'
+      +'<button class="action-btn save-btn'+(isSaved?' saved':'')+'" onclick="toggleSave(\''+p.id+'\')">'
+        +'<svg fill="'+(isSaved?'currentColor':'none')+'" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg>'
+      +'</button>'
+    +'</div>'
+    +'<div class="post-likes">'+totalLikes.toLocaleString()+' likes</div>'
+    +'<div class="post-caption"><strong>'+p.user+'</strong>'+p.caption+'</div>';
+  if(allComments.length>0){
+    html+='<div class="post-comments-count" onclick="openPostModal(\''+p.id+'\')">View all '+allComments.length+' comment'+(allComments.length>1?'s':'')+'</div>';
+    var last=allComments[allComments.length-1];
+    html+='<div style="padding:0 16px 6px;font-size:13px;"><strong style="font-weight:700;margin-right:5px;">'+last.user+'</strong>'+last.text+'</div>';
+  }
+  html+='<div class="post-comment-input">'
+    +'<div class="comment-av-sm">S</div>'
+    +'<input class="comment-input" placeholder="Add a comment…" id="ci-'+p.id+'" onkeydown="if(event.key===\'Enter\')postComment(\''+p.id+'\')" oninput="toggleCommentBtn(\''+p.id+'\')">'
+    +'<button class="comment-post-btn" id="cpb-'+p.id+'" onclick="postComment(\''+p.id+'\')">Post</button>'
+    +'</div>'
+    +'<div class="post-time">'+p.time+'</div>'
+  +'</div>';
+  return html;
+}
+
+function toggleLike(id){
+  likes[id]=!likes[id];saveLikes();
+  var card=document.getElementById('card-'+id);
+  if(card){
+    var btn=card.querySelector('.action-btn');
+    btn.classList.toggle('liked',likes[id]);
+    var svg=btn.querySelector('svg');
+    svg.setAttribute('fill',likes[id]?'currentColor':'none');
+    var post=getAllPosts().find(function(p){return p.id===id;});
+    if(post){
+      var base=post.likes||0;
+      card.querySelector('.post-likes').textContent=(base+(likes[id]?1:0)).toLocaleString()+' likes';
+    }
+  }
+  if(likes[id])showToast('❤️ Liked!');
+}
+function toggleSave(id){
+  saved[id]=!saved[id];saveSaved();
+  var card=document.getElementById('card-'+id);
+  if(card){
+    var btn=card.querySelector('.save-btn');
+    btn.classList.toggle('saved',saved[id]);
+    btn.querySelector('svg').setAttribute('fill',saved[id]?'currentColor':'none');
+  }
+  showToast(saved[id]?'Saved to collection':'Removed from saved');
+}
+function toggleCommentBtn(id){
+  var inp=document.getElementById('ci-'+id);
+  var btn=document.getElementById('cpb-'+id);
+  if(btn){btn.style.opacity=inp&&inp.value.trim()?'1':'0.4';btn.style.pointerEvents=inp&&inp.value.trim()?'auto':'none';}
+}
+function postComment(id){
+  var inp=document.getElementById('ci-'+id);
+  if(!inp||!inp.value.trim())return;
+  var arr=comments[id]||[];
+  arr.push({init:'S',color:'#7c3aed',user:'samad.abdul',text:inp.value.trim(),time:'now'});
+  comments[id]=arr;saveComments();
+  inp.value='';toggleCommentBtn(id);
+  renderFeed();
+  showToast('Comment posted!');
+}
+
+/* ── Post modal ── */
+function openPostModal(id){
+  var post=getAllPosts().find(function(p){return p.id===id;});
+  if(!post)return;
+  var liked=likes[id]||false;
+  var isSaved=saved[id]||false;
+  var extraComments=comments[id]||[];
+  var allComments=(post.baseComments||[]).concat(extraComments);
+  var totalLikes=(post.likes||0)+(liked?1:0);
+  var commentsHtml=allComments.map(function(c){
+    return '<div class="comment-row">'
+      +'<div class="comment-row-av" style="background:'+c.color+'">'+c.init+'</div>'
+      +'<div class="comment-row-body"><strong>'+c.user+'</strong>'+c.text+' <span class="comment-row-time">'+c.time+'</span>'
+      +'<div style="display:flex;gap:10px;margin-top:4px;"><button class="comment-row-like">Reply</button><button class="comment-row-like">❤ '+Math.floor(Math.random()*30)+'</button></div>'
+      +'</div></div>';
+  }).join('');
+  document.getElementById('post-modal-content').innerHTML=
+    '<div class="post-modal-img"><img src="'+post.img+'" alt="" /></div>'
+    +'<div class="post-modal-right">'
+      +'<div class="post-modal-header">'
+        +'<div class="post-av"><div class="post-av-inner" style="background:'+post.color+'20;color:'+post.color+';">'+post.init+'</div></div>'
+        +'<div><div class="post-user">'+post.user+'</div>'+(post.location?'<div class="post-location">'+post.location+'</div>':'')+'</div>'
+        +'<button class="post-more" style="margin-left:auto;" onclick="closeModal(\'post-modal\')"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>'
+      +'</div>'
+      +'<div class="post-modal-comments">'
+        +'<div class="comment-row">'
+          +'<div class="comment-row-av" style="background:'+post.color+'">'+post.init+'</div>'
+          +'<div class="comment-row-body"><strong>'+post.user+'</strong>'+post.caption+'</div>'
+        +'</div>'
+        +commentsHtml
+      +'</div>'
+      +'<div class="post-modal-actions">'
+        +'<div class="post-actions">'
+          +'<button class="action-btn'+(liked?' liked':'')+'" onclick="toggleLike(\''+id+'\')">'
+            +'<svg fill="'+(liked?'currentColor':'none')+'" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>'
+          +'</button>'
+          +'<button class="action-btn save-btn'+(isSaved?' saved':'')+'" style="margin-left:auto;" onclick="toggleSave(\''+id+'\')">'
+            +'<svg fill="'+(isSaved?'currentColor':'none')+'" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg>'
+          +'</button>'
+        +'</div>'
+      +'</div>'
+      +'<div class="post-modal-likes">'+totalLikes.toLocaleString()+' likes</div>'
+      +'<div class="post-modal-input">'
+        +'<input id="modal-comment-input" placeholder="Add a comment…" onkeydown="if(event.key===\'Enter\')postModalComment(\''+id+'\')" />'
+        +'<button style="font-size:14px;font-weight:700;color:#0095f6;background:none;border:none;" onclick="postModalComment(\''+id+'\')">Post</button>'
+      +'</div>'
+    +'</div>';
+  openModal('post-modal');
+}
+function postModalComment(id){
+  var inp=document.getElementById('modal-comment-input');
+  if(!inp||!inp.value.trim())return;
+  var arr=comments[id]||[];
+  arr.push({init:'S',color:'#7c3aed',user:'samad.abdul',text:inp.value.trim(),time:'now'});
+  comments[id]=arr;saveComments();
+  inp.value='';
+  openPostModal(id);
+  showToast('Comment posted!');
+}
+
+/* ── Explore ── */
+function renderExplore(){
+  var grid=document.getElementById('explore-grid');
+  grid.innerHTML=EXPLORE_IMGS.map(function(img,i){
+    var likes=Math.floor(Math.random()*5000)+200;
+    var tall=i===0||i===4;
+    return '<div class="explore-cell'+(tall?' tall':'')+'" onclick="showToast(\'❤️ \'+'+likes+'+\' likes\')">'
+      +'<img src="'+img+'" alt="" loading="lazy" />'
+      +'<div class="hover-info">'
+        +'<span><svg style="width:16px;height:16px;" fill="currentColor" viewBox="0 0 24 24"><path d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>'+likes+'</span>'
+        +'<span><svg style="width:16px;height:16px;" fill="currentColor" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12 2.25c-2.429 0-4.817.178-7.152.521C2.87 3.061 1.5 4.795 1.5 6.741v6.018c0 1.946 1.37 3.68 3.348 3.97.877.129 1.761.234 2.652.316V21a.75.75 0 001.28.53l4.184-4.183a.39.39 0 01.266-.112c2.006-.05 3.982-.22 5.922-.506 1.978-.29 3.348-2.023 3.348-3.97V6.741c0-1.947-1.37-3.68-3.348-3.97A49.145 49.145 0 0012 2.25z" clip-rule="evenodd"/></svg>'+Math.floor(likes/10)+'</span>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+}
+
+/* ── Profile ── */
+function renderProfile(){
+  var myPosts=userPosts.slice().reverse();
+  var savedPosts=BASE_POSTS.filter(function(p){return saved[p.id];});
+  var grid=document.getElementById('profile-grid');
+  var currentTab=grid.dataset.tab||'posts';
+  var posts=currentTab==='saved'?savedPosts:myPosts;
+  document.getElementById('profile-post-count').textContent=myPosts.length;
+  if(!posts.length){
+    grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:48px 20px;color:#8e8e8e;font-size:14px;">'+(currentTab==='saved'?'No saved posts yet. Tap the bookmark on any post to save it.':'Share your first photo!')+'</div>';
+    return;
+  }
+  grid.innerHTML=posts.map(function(p){
+    var lk=(p.likes||0)+(likes[p.id]?1:0);
+    return '<div class="profile-grid-item" onclick="openPostModal(\''+p.id+'\')">'
+      +'<img src="'+p.img+'" alt="" loading="lazy" />'
+      +'<div class="hover-info"><span>❤ '+lk.toLocaleString()+'</span></div>'
+    +'</div>';
+  }).join('');
+}
+function setProfileTab(tab,el){
+  document.querySelectorAll('.profile-tab').forEach(function(t){t.classList.remove('active');});
+  el.classList.add('active');
+  var grid=document.getElementById('profile-grid');
+  grid.dataset.tab=tab;
+  renderProfile();
+}
+
+/* ── Suggestions ── */
+function renderSuggestions(){
+  var list=document.getElementById('suggestions-list');
+  list.innerHTML=SUGGESTIONS.map(function(s,i){
+    var isFollowing=following['sug'+i]||false;
+    return '<div class="suggestion-item">'
+      +'<div class="suggestion-av" style="background:'+s.color+'">'+s.init+'</div>'
+      +'<div><div class="suggestion-name">'+s.name+'</div><div class="suggestion-sub">'+s.sub+'</div></div>'
+      +'<button class="follow-btn'+(isFollowing?' following':'')+'" onclick="toggleFollow(\'sug'+i+'\',this)">'+(isFollowing?'Following':'Follow')+'</button>'
+    +'</div>';
+  }).join('');
+}
+function toggleFollow(id,btn){
+  following[id]=!following[id];saveFollowing();
+  btn.textContent=following[id]?'Following':'Follow';
+  btn.classList.toggle('following',following[id]);
+  showToast(following[id]?'Following!':'Unfollowed');
+}
+
+/* ── Create Post ── */
+function handleFileSelect(e){
+  var file=e.target.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    newPostImg=ev.target.result;
+    var body=document.getElementById('create-body');
+    body.innerHTML='<div class="create-preview">'
+      +'<img src="'+newPostImg+'" style="width:100%;aspect-ratio:1;object-fit:cover;" />'
+      +'<div class="create-preview-form">'
+        +'<div class="create-user-row"><div class="comment-av-sm">S</div><strong style="font-size:14px;">samad.abdul</strong></div>'
+        +'<textarea class="create-caption" id="new-caption" placeholder="Write a caption…" maxlength="2200" oninput="document.getElementById(\'cap-count\').textContent=this.value.length+\'/2,200\'"></textarea>'
+        +'<div class="caption-count" id="cap-count">0/2,200</div>'
+        +'<input style="width:100%;padding:8px;border:none;border-bottom:1px solid #dbdbdb;outline:none;font-size:14px;font-family:inherit;" placeholder="Add location…" id="new-location" />'
+      +'</div>'
+    +'</div>';
+    var shareBtn=document.getElementById('share-btn');
+    shareBtn.style.opacity='1';shareBtn.style.pointerEvents='auto';
+  };
+  reader.readAsDataURL(file);
+}
+function sharePost(){
+  if(!newPostImg)return;
+  var caption=document.getElementById('new-caption');
+  var location=document.getElementById('new-location');
+  var newPost={
+    id:'user_'+Date.now(),
+    user:'samad.abdul',init:'S',color:'#7c3aed',
+    img:newPostImg,
+    caption:caption?caption.value:'',
+    location:location?location.value:'',
+    time:'JUST NOW',likes:0,baseComments:[]
+  };
+  userPosts.push(newPost);saveUserPosts();
+  closeModal('create-modal');
+  newPostImg=null;
+  // reset modal
+  var body=document.getElementById('create-body');
+  body.innerHTML='<div class="create-drop-zone" id="drop-zone"><svg fill="none" stroke="currentColor" stroke-width="1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg><p>Drag photos and videos here</p><button style="background:#0095f6;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">Select from computer</button><input type="file" accept="image/*" onchange="handleFileSelect(event)" /></div>';
+  document.getElementById('share-btn').style.opacity='0.4';
+  document.getElementById('share-btn').style.pointerEvents='none';
+  renderFeed();
+  showToast('Post shared! 🎉');
+}
+
+/* ── Close modals on overlay click ── */
+document.querySelectorAll('.modal-overlay').forEach(function(o){
+  o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('open');});
+});
+
+/* ── Init ── */
+renderStories();
+renderFeed();
+renderExplore();
+renderSuggestions();
+</script>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Orbit — Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#030712;color:#f9fafb;display:flex;min-height:100vh}
+
+/* SIDEBAR */
+aside{width:240px;flex-shrink:0;background:#111827;border-right:1px solid #1f2937;display:flex;flex-direction:column;min-height:100vh;position:sticky;top:0}
+.sidebar-logo{display:flex;align-items:center;gap:8px;padding:0 20px;height:64px;border-bottom:1px solid #1f2937}
+.logo-icon{width:32px;height:32px;border-radius:10px;background:#4f46e5;display:grid;place-items:center}
+.logo-text{font-size:17px;font-weight:700;color:#fff}
+.sidebar-nav{flex:1;padding:12px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;font-size:13px;font-weight:500;color:#9ca3af;cursor:pointer;transition:.15s;margin-bottom:2px}
+.nav-item:hover{background:#1f2937;color:#f9fafb}
+.nav-item.active{background:rgba(79,70,229,.2);color:#818cf8}
+.nav-item svg{flex-shrink:0}
+.sidebar-footer{padding:16px;border-top:1px solid #1f2937}
+.user-row{display:flex;align-items:center;gap:10px;padding:8px}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:#4f46e5;display:grid;place-items:center;color:#fff;font-size:13px;font-weight:700;flex-shrink:0}
+.user-name{font-size:13px;font-weight:500;color:#f9fafb}
+.user-email{font-size:11px;color:#6b7280}
+
+/* MAIN */
+main{flex:1;overflow:auto;padding:24px}
+
+/* PAGES */
+.page{display:none}
+.page.active{display:block}
+
+/* KPIs */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.kpi-card{background:#111827;border:1px solid #1f2937;border-radius:16px;padding:20px}
+.kpi-label{font-size:12px;color:#6b7280;margin-bottom:12px}
+.kpi-value{font-size:22px;font-weight:700;color:#f9fafb;margin-bottom:4px}
+.kpi-delta{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px}
+.kpi-delta.up{background:rgba(16,185,129,.1);color:#34d399}
+.kpi-delta.down{background:rgba(239,68,68,.1);color:#f87171}
+
+/* CHART */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+@media(max-width:900px){.two-col{grid-template-columns:1fr}}
+.card{background:#111827;border:1px solid #1f2937;border-radius:16px;padding:20px}
+.card-title{font-size:14px;font-weight:600;color:#f9fafb;margin-bottom:16px}
+.chart-bars{display:flex;align-items:flex-end;gap:4px;height:100px}
+.bar{flex:1;background:#4f46e5;border-radius:4px 4px 0 0;transition:.2s;cursor:pointer}
+.bar:hover{background:#818cf8}
+.chart-labels{display:flex;justify-content:space-between;margin-top:6px}
+.chart-labels span{font-size:10px;color:#4b5563}
+
+/* ACTIVITY */
+.activity-item{display:flex;align-items:start;gap:10px;margin-bottom:14px}
+.act-avatar{width:32px;height:32px;border-radius:50%;background:rgba(79,70,229,.2);display:grid;place-items:center;color:#818cf8;font-size:12px;font-weight:700;flex-shrink:0}
+.act-text{font-size:13px;color:#d1d5db;line-height:1.4}
+.act-meta{font-size:11px;color:#6b7280;margin-top:2px}
+
+/* TABLE */
+.table-card{background:#111827;border:1px solid #1f2937;border-radius:16px;overflow:hidden;margin-bottom:24px}
+.table-header{padding:16px 20px;border-bottom:1px solid #1f2937;display:flex;align-items:center;justify-content:space-between}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{border-bottom:1px solid #1f2937}
+th{text-align:left;padding:12px 20px;color:#6b7280;font-weight:500}
+tbody tr{border-bottom:1px solid rgba(31,41,55,.5);transition:.15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(31,41,55,.4)}
+td{padding:12px 20px;color:#d1d5db}
+.role-badge{padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600}
+.role-admin{background:rgba(79,70,229,.1);color:#818cf8}
+.role-editor{background:rgba(245,158,11,.1);color:#fbbf24}
+.role-viewer{background:rgba(107,114,128,.1);color:#9ca3af}
+.status-dot{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:500}
+.dot{width:6px;height:6px;border-radius:50%;display:inline-block}
+.dot-active{background:#34d399}
+.dot-inactive{background:#4b5563}
+
+/* SEARCH */
+.search-input{width:100%;max-width:240px;padding:8px 12px 8px 32px;background:#1f2937;border:1px solid #374151;border-radius:10px;color:#f9fafb;font-size:13px;font-family:inherit;outline:none;transition:.15s;position:relative}
+.search-wrap{position:relative;max-width:240px;margin-bottom:16px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#6b7280;pointer-events:none}
+
+/* SETTINGS */
+.settings-card{background:#111827;border:1px solid #1f2937;border-radius:16px;padding:24px;max-width:600px;margin-bottom:16px}
+.settings-title{font-size:14px;font-weight:600;color:#f9fafb;margin-bottom:16px}
+.form-field{margin-bottom:14px}
+.form-label{font-size:12px;color:#9ca3af;margin-bottom:6px;display:block}
+.form-input{width:100%;padding:10px 14px;background:#1f2937;border:1px solid #374151;border-radius:10px;color:#f9fafb;font-size:13px;font-family:inherit;outline:none;transition:.15s}
+.form-input:focus{border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,.2)}
+.form-input[readonly]{color:#6b7280;cursor:not-allowed}
+.btn-save{padding:10px 20px;background:#4f46e5;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s}
+.btn-save:hover{background:#4338ca}
+.toggle-row{display:flex;align-items:start;justify-content:space-between;padding:14px 0;border-bottom:1px solid #1f2937}
+.toggle-row:last-child{border-bottom:none}
+.toggle-lbl{font-size:13px;font-weight:500;color:#f9fafb}
+.toggle-sub{font-size:11px;color:#6b7280;margin-top:2px}
+.toggle{width:36px;height:20px;border-radius:999px;background:#374151;position:relative;cursor:pointer;flex-shrink:0;border:none;transition:.2s;margin-left:16px}
+.toggle.on{background:#4f46e5}
+.toggle::after{content:'';position:absolute;width:14px;height:14px;background:#fff;border-radius:50%;top:3px;left:3px;transition:.2s}
+.toggle.on::after{transform:translateX(16px)}
+</style>
+</head>
+<body>
+
+<aside>
+  <div class="sidebar-logo">
+    <div class="logo-icon"><svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg></div>
+    <span class="logo-text">Orbit</span>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="showPage('dashboard',this)">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="showPage('users',this)">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg>
+      Users
+    </div>
+    <div class="nav-item" onclick="showPage('settings',this)">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/></svg>
+      Settings
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="user-avatar">D</div>
+      <div><div class="user-name">Demo User</div><div class="user-email">demo@example.com</div></div>
+    </div>
+  </div>
+</aside>
+
+<main>
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div style="margin-bottom:24px"><h1 style="font-size:22px;font-weight:700;color:#f9fafb">Dashboard</h1><p style="font-size:13px;color:#6b7280;margin-top:4px">Welcome back — here's what's happening.</p></div>
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">Total Users</div><div class="kpi-value">12,483</div><span class="kpi-delta up">+8.2%</span></div>
+    <div class="kpi-card"><div class="kpi-label">Revenue (MoM)</div><div class="kpi-value">$94,210</div><span class="kpi-delta up">+12.4%</span></div>
+    <div class="kpi-card"><div class="kpi-label">Active Sessions</div><div class="kpi-value">1,842</div><span class="kpi-delta down">-3.1%</span></div>
+    <div class="kpi-card"><div class="kpi-label">Bounce Rate</div><div class="kpi-value">24.6%</div><span class="kpi-delta up">-1.8%</span></div>
+  </div>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">Revenue (K) — 2024</div>
+      <div class="chart-bars" id="chart-bars"></div>
+      <div class="chart-labels" id="chart-labels"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Recent Activity</div>
+      <div class="activity-item"><div class="act-avatar">A</div><div><div class="act-text">Published new post "Q1 Report"</div><div class="act-meta">Alice Chen · 2 min ago</div></div></div>
+      <div class="activity-item"><div class="act-avatar">B</div><div><div class="act-text">Updated user permissions</div><div class="act-meta">Bob Martinez · 14 min ago</div></div></div>
+      <div class="activity-item"><div class="act-avatar">C</div><div><div class="act-text">Uploaded 3 new media files</div><div class="act-meta">Carol White · 1 hr ago</div></div></div>
+      <div class="activity-item"><div class="act-avatar">D</div><div><div class="act-text">Deleted draft "Old Proposal"</div><div class="act-meta">Dan Singh · 3 hrs ago</div></div></div>
+      <div class="activity-item"><div class="act-avatar">E</div><div><div class="act-text">Logged in from new device</div><div class="act-meta">Eva Kowalski · 5 hrs ago</div></div></div>
+    </div>
+  </div>
+  <div class="table-card" id="users-table"></div>
+</div>
+
+<!-- USERS -->
+<div class="page" id="page-users">
+  <div style="margin-bottom:24px"><h1 style="font-size:22px;font-weight:700;color:#f9fafb">Users</h1><p style="font-size:13px;color:#6b7280;margin-top:4px">Manage team members and permissions</p></div>
+  <div class="search-wrap">
+    <svg class="search-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    <input class="search-input" type="text" placeholder="Search users…" oninput="filterUsers(this.value)"/>
+  </div>
+  <div class="table-card" id="users-table-full"></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="page" id="page-settings">
+  <div style="margin-bottom:24px"><h1 style="font-size:22px;font-weight:700;color:#f9fafb">Settings</h1><p style="font-size:13px;color:#6b7280;margin-top:4px">Manage your account preferences</p></div>
+  <div class="settings-card" style="max-width:600px">
+    <div class="settings-title">Profile</div>
+    <div class="form-field"><label class="form-label">Display name</label><input class="form-input" type="text" value="Demo User"/></div>
+    <div class="form-field"><label class="form-label">Email</label><input class="form-input" type="email" value="demo@example.com" readonly/></div>
+    <button class="btn-save" onclick="this.textContent='Saved!';setTimeout(()=>this.textContent='Save changes',2000)">Save changes</button>
+  </div>
+  <div class="settings-card" style="max-width:600px">
+    <div class="settings-title">Notifications</div>
+    <div class="toggle-row"><div><div class="toggle-lbl">Email alerts for new sign-ups</div><div class="toggle-sub">Get notified when a new user registers</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+    <div class="toggle-row"><div><div class="toggle-lbl">Weekly digest</div><div class="toggle-sub">Summary of activity sent every Monday</div></div><button class="toggle" onclick="this.classList.toggle('on')"></button></div>
+    <div class="toggle-row"><div><div class="toggle-lbl">Security alerts</div><div class="toggle-sub">Alerts for suspicious login attempts</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+  </div>
+</div>
+</main>
+
+<script>
+const USERS=[
+  {n:'Alice Chen',   e:'alice@example.com',  r:'Admin',  s:'Active',   j:'2024-01-12'},
+  {n:'Bob Martinez', e:'bob@example.com',    r:'Editor', s:'Active',   j:'2024-02-05'},
+  {n:'Carol White',  e:'carol@example.com',  r:'Viewer', s:'Inactive', j:'2024-03-18'},
+  {n:'Dan Singh',    e:'dan@example.com',    r:'Editor', s:'Active',   j:'2024-04-01'},
+  {n:'Eva Kowalski', e:'eva@example.com',    r:'Viewer', s:'Active',   j:'2024-05-22'},
+  {n:'Felix Grant',  e:'felix@example.com',  r:'Viewer', s:'Active',   j:'2024-06-10'},
+  {n:'Grace Huang',  e:'grace@example.com',  r:'Editor', s:'Active',   j:'2024-07-03'},
+];
+
+function tableHTML(users,compact){
+  return `<div class="table-header"><span style="font-size:14px;font-weight:600;color:#f9fafb">${compact?'Users':''}</span><span style="font-size:12px;color:#6b7280">${users.length} total</span></div>
+  <table><thead><tr><th>Name</th><th>Role</th><th>Status</th>${compact?'':'<th>Joined</th>'}</tr></thead>
+  <tbody>${users.map(u=>`<tr>
+    <td><div style="display:flex;align-items:center;gap:10px"><div style="width:28px;height:28px;border-radius:50%;background:rgba(79,70,229,.2);display:grid;place-items:center;color:#818cf8;font-size:11px;font-weight:700">${u.n[0]}</div><div><div style="color:#f9fafb;font-weight:500">${u.n}</div><div style="font-size:11px;color:#6b7280">${u.e}</div></div></div></td>
+    <td><span class="role-badge ${u.r==='Admin'?'role-admin':u.r==='Editor'?'role-editor':'role-viewer'}">${u.r}</span></td>
+    <td><span class="status-dot"><span class="dot ${u.s==='Active'?'dot-active':'dot-inactive'}"></span>${u.s}</span></td>
+    ${compact?'':`<td style="color:#6b7280">${u.j}</td>`}
+  </tr>`).join('')}</tbody></table>`;
+}
+
+document.getElementById('users-table').innerHTML = tableHTML(USERS, true);
+document.getElementById('users-table-full').innerHTML = tableHTML(USERS, false);
+
+function filterUsers(q){
+  const list = USERS.filter(u=>u.n.toLowerCase().includes(q.toLowerCase())||u.e.toLowerCase().includes(q.toLowerCase()));
+  document.getElementById('users-table-full').innerHTML = tableHTML(list, false);
+}
+
+// Chart
+const DATA=[42,58,51,67,73,89,76,95,88,102,118,131];
+const MONTHS=['J','F','M','A','M','J','J','A','S','O','N','D'];
+const mx=Math.max(...DATA);
+document.getElementById('chart-bars').innerHTML=DATA.map(v=>`<div class="bar" style="height:${(v/mx)*100}%" title="$${v}K"></div>`).join('');
+document.getElementById('chart-labels').innerHTML=MONTHS.map(m=>`<span>${m}</span>`).join('');
+
+function showPage(p,el){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  if(el) el.classList.add('active');
+}
+</script>
+</body>
+</html>
